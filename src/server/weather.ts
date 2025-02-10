@@ -2,7 +2,8 @@
 
 import { CityData, ForecastData, WeatherData } from "@/types";
 import { getCityKey } from "@/utils";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
+import { NotFoundError, ServerError } from "./errors";
 
 export const getCoordinates = async (city: string, country?: string) => {
   const q = [city, country].filter(Boolean).join(",");
@@ -11,8 +12,8 @@ export const getCoordinates = async (city: string, country?: string) => {
       `http://api.openweathermap.org/geo/1.0/direct?q=${q}&limit=1&appid=${process.env.OPEN_WEATHER_API_KEY}`
     );
 
-    if (!response.data) {
-      throw new Error("City not found");
+    if (!response.data || response.data.length === 0) {
+      throw new NotFoundError("Location not found");
     }
 
     const unique = new Set();
@@ -27,10 +28,14 @@ export const getCoordinates = async (city: string, country?: string) => {
       return true;
     });
   } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.statusText);
-    }
-    throw new Error("Error fetching data:\n" + error);
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === 404
+    )
+      throw error;
+    else throw new ServerError();
   }
 };
 
@@ -46,8 +51,8 @@ export const getWeather = async ({
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`
     );
     return response.data;
-  } catch (error) {
-    throw new Error("Error fetching data:\n" + error);
+  } catch {
+    throw new ServerError();
   }
 };
 
@@ -106,7 +111,7 @@ export const getForecast = async ({
       `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`
     );
     return getDailyForecast(response.data.list);
-  } catch (error) {
-    throw new Error("Error fetching data:\n" + error);
+  } catch {
+    throw new ServerError();
   }
 };

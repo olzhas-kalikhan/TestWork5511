@@ -15,7 +15,7 @@ export default async function Page({
     <div>
       <div className="d-flex align-items-center">
         <h1 className="me-3">
-          {city} | {country}
+          {decodeURIComponent(city)} | {decodeURIComponent(country)}
         </h1>
         <FavoriteButton cityData={cityData[0]} />
       </div>

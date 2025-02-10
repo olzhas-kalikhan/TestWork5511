@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { getWeather } from "@/server/weather";
 import { CityData, WeatherData } from "@/types";
@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Card, ListGroup, Placeholder } from "react-bootstrap";
 import FavoriteButton from "./favorite-button";
 
-const WeatherCardPlaceholder = ({ className }: { className?: string }) => {
+export const WeatherCardPlaceholder = ({ className }: { className?: string }) => {
   return (
     <Card className={"h-100 px-3 py-4 " + className}>
       <Card.Body as={Card.Body} className="p-0">
@@ -30,7 +30,7 @@ const WeatherCardPlaceholder = ({ className }: { className?: string }) => {
   );
 };
 
-const WeatherCard = ({
+export const WeatherCard = ({
   cityWeather,
   cityData,
 }: {
@@ -89,14 +89,14 @@ export default function CityWeatherCard({
   const { data: cityWeatherData, isFetching } = useQuery({
     queryKey: ["cityWeatherData", cityData],
     queryFn: () => {
-      return cityData ? getWeather(cityData) : null;
+      return cityData ? getWeather([cityData]) : null;
     },
     enabled: Boolean(cityData),
   });
 
   if (isFetching) return <WeatherCardPlaceholder />;
 
-  if (!cityData || !cityWeatherData)
+  if (!cityData || !cityWeatherData?.[0])
     return <WeatherCardPlaceholder className="invisible" />;
-  return <WeatherCard cityWeather={cityWeatherData} cityData={cityData} />;
+  return <WeatherCard cityWeather={cityWeatherData[0]} cityData={cityData} />;
 }

@@ -39,18 +39,21 @@ export const getCoordinates = async (city: string, country?: string) => {
   }
 };
 
-export const getWeather = async ({
-  lat,
-  lon,
-}: {
-  lat: number;
-  lon: number;
-}) => {
+export const getWeather = async (
+  coordinates: {
+    lat: number;
+    lon: number;
+  }[]
+) => {
   try {
-    const response = await axios.get<WeatherData>(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`
+    const promises = coordinates.map(({ lat, lon }) =>
+      axios.get<WeatherData>(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`
+      )
     );
-    return response.data;
+    const responses = await Promise.all(promises);
+
+    return responses.map(({ data }) => data);
   } catch {
     throw new ServerError();
   }
